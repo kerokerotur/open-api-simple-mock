@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { OpenAPIGenerator } from '../core/openapi-generator';
+import { OpenAPIGenerator } from '../src/core/openapi-generator';
 import * as fs from 'fs-extra';
 import { exec } from 'child_process';
 
@@ -26,7 +26,7 @@ describe('OpenAPIGenerator', () => {
       };
 
       // Mock exec to resolve successfully
-      mockExec.mockImplementation((command, callback) => {
+      mockExec.mockImplementation((_command, callback) => {
         callback?.(null, { stdout: 'Success', stderr: '' } as any);
         return {} as any;
       });
@@ -50,7 +50,7 @@ describe('OpenAPIGenerator', () => {
         additionalProperties: 'npmName=test-client'
       };
 
-      mockExec.mockImplementation((command, callback) => {
+      mockExec.mockImplementation((_command: string, callback?: any) => {
         callback?.(null, { stdout: 'Success', stderr: '' } as any);
         return {} as any;
       });
@@ -73,7 +73,7 @@ describe('OpenAPIGenerator', () => {
       };
 
       // Mock exec to reject
-      mockExec.mockImplementation((command, callback) => {
+      mockExec.mockImplementation((_command: string, callback?: any) => {
         callback?.(new Error('Generator failed'), null);
         return {} as any;
       });
@@ -91,7 +91,7 @@ describe('OpenAPIGenerator', () => {
         generatorName: 'typescript-node'
       };
 
-      mockExec.mockImplementation((command, callback) => {
+      mockExec.mockImplementation((_command: string, callback?: any) => {
         callback?.(null, { stdout: 'Success', stderr: '' } as any);
         return {} as any;
       });
@@ -113,13 +113,13 @@ describe('OpenAPIGenerator', () => {
         generatorName: 'typescript-node'
       };
 
-      mockExec.mockImplementation((command, callback) => {
+      mockExec.mockImplementation((_command: string, callback?: any) => {
         callback?.(null, { stdout: 'Success', stderr: '' } as any);
         return {} as any;
       });
 
       // Mock fetch for URL
-      global.fetch = vi.fn().mockResolvedValue({
+      (globalThis as any).fetch = vi.fn().mockResolvedValue({
         text: () => Promise.resolve('{"openapi": "3.0.0"}')
       });
 

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { MockServer } from '../core/mock-server';
+import { MockServer } from '../src/core/mock-server';
 import * as fs from 'fs-extra';
-import request from 'supertest';
 
 vi.mock('fs-extra');
 

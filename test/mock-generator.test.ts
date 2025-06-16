@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MockGenerator } from '../core/mock-generator';
+import { MockGenerator } from '../src/core/mock-generator';
 import * as fs from 'fs-extra';
 
 vi.mock('fs-extra');
@@ -130,7 +130,7 @@ describe('MockGenerator', () => {
 
       await generator.generateMockServer('test-spec.json', './output');
 
-      const writeCall = mockFs.writeFile.mock.calls.find(call => 
+      const writeCall = mockFs.writeFile.mock.calls.find((call: any) => 
         call[0].toString().includes('get.json')
       );
       

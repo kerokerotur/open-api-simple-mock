@@ -10,6 +10,8 @@
     "build": "tsc",
     "dev": "tsx src/cli.ts",
     "test": "vitest",
+    "test:unit": "vitest --exclude '**/integration.test.ts'",
+    "test:integration": "vitest test/integration.test.ts",
     "test:coverage": "vitest --coverage",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
