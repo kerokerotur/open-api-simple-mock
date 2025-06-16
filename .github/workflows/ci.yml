@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linter
+      run: npm run lint
+
+    - name: Run tests with coverage
+      run: npm run test:coverage
+
+    - name: Check coverage threshold
+      run: |
+        npm run test:coverage 2>&1 | tee coverage.log
+        if grep -q "Coverage threshold for" coverage.log; then
+          echo "❌ Coverage threshold not met"
+          exit 1
+        fi
+        echo "✅ Coverage threshold met"
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Build project
+      run: npm run build
+
+    - name: Test build artifacts
+      run: |
+        if [ ! -f "dist/cli.js" ]; then
+          echo "❌ CLI build artifact not found"
+          exit 1
+        fi
+        if [ ! -f "dist/index.js" ]; then
+          echo "❌ Index build artifact not found"
+          exit 1
+        fi
+        echo "✅ Build artifacts verified"
+
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Create test OpenAPI spec
+      run: |
+        mkdir -p test-integration
+        cat > test-integration/petstore.json << 'EOF'
+        {
+          "openapi": "3.0.0",
+          "info": {
+            "title": "Petstore API",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/pets": {
+              "get": {
+                "summary": "List all pets",
+                "responses": {
+                  "200": {
+                    "description": "List of pets",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer",
+                                "example": 1
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "Fluffy"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        EOF
+
+    - name: Test CLI generate command
+      run: |
+        cd test-integration
+        node ../dist/cli.js generate petstore.json -o ./generated
+        
+        # Check if files were generated
+        if [ ! -d "generated" ]; then
+          echo "❌ Generated directory not created"
+          exit 1
+        fi
+        
+        if [ ! -f "generated/openapi.json" ]; then
+          echo "❌ OpenAPI spec not copied"
+          exit 1
+        fi
+        
+        if [ ! -d "generated/mocks" ]; then
+          echo "❌ Mocks directory not created"
+          exit 1
+        fi
+        
+        echo "✅ Generate command test passed"
+
+    - name: Test mock server startup
+      run: |
+        cd test-integration
+        # Start mock server in background
+        timeout 10s node ../dist/cli.js run -d ./generated -p 3001 &
+        SERVER_PID=$!
+        
+        # Wait for server to start
+        sleep 3
+        
+        # Test if server is responding
+        if curl -f http://localhost:3001/pets > /dev/null 2>&1; then
+          echo "✅ Mock server startup test passed"
+        else
+          echo "❌ Mock server not responding"
+          kill $SERVER_PID 2>/dev/null || true
+          exit 1
+        fi
+        
+        # Clean up
+        kill $SERVER_PID 2>/dev/null || true

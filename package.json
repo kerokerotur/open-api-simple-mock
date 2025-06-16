@@ -1,0 +1,60 @@
+{
+  "name": "open-api-nice-mock",
+  "version": "0.1.0",
+  "description": "A CLI tool to generate TypeScript models and mock servers from OpenAPI specifications",
+  "main": "dist/index.js",
+  "bin": {
+    "open-api-nice-mock": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "openapi",
+    "mock",
+    "cli",
+    "typescript",
+    "api",
+    "generator"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "express": "^4.18.2",
+    "@openapitools/openapi-generator-cli": "^2.7.0",
+    "yaml": "^2.3.4",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "@types/express": "^4.17.17",
+    "@types/fs-extra": "^11.0.2",
+    "@types/supertest": "^2.0.12",
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "eslint": "^8.50.0",
+    "supertest": "^6.3.3",
+    "tsx": "^3.14.0",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6",
+    "@vitest/coverage-v8": "^0.34.6"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/open-api-nice-mock.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/open-api-nice-mock/issues"
+  },
+  "homepage": "https://github.com/yourusername/open-api-nice-mock#readme"
+}
